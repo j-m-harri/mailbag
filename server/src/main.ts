@@ -50,3 +50,56 @@ app.get("/messages/:mailbox/:id", async (inRequest: Request, inResponse: Respons
 		inResponse.send("error");
 	}
 });
+
+app.delete("/messages/:mailbox/:id", async (inRequest: Request, inResponse: Response) => {
+	try {
+		const imapWorker: IMAP.Worker = new IMAP.Worker(serverInfo);
+		await imapWorker.deleteMessage({
+			mailbox: inRequest.params.mailbox,
+			id: parseInt(inRequest.params.id, 10)
+			});
+		inResponse.send("ok");
+	} catch (inError) {
+		inResponse.send("error");
+	}
+});
+
+app.post("/messages", async (inRequest: Request, inResponse: Response) => {
+	try {
+		const smtpWorker: SMTP.Worker = new SMTP.Worker(serverInfo);
+		await smtpWorker.sendMessage(inRequest.body);
+		inResponse.send("ok");
+	} catch (inError) {
+		inResponse.send("error");
+	}
+});
+
+app.get("/contacts", async (inRequest: Request, inResponse: Response) => {
+	try {
+		const contactsWorker: Contacts.Worker = new Contacts.Worker();
+		const contacts: Contacts.IContact[] = await contactsWorker.listContacts();
+		inResponse.json(contacts);
+	} catch (inError) {
+		inResponse.send("error");
+	}
+});
+
+app.post("/contacts", async (inRequest: Request, inResponse: Response) => {
+	try {
+		const contactsWorker: Contacts.Worker = new Contacts.Worker();
+		await contactsWorker.addContact(inRequest.body);
+		inResponse.send("ok");
+	} catch (inError) {
+		inResponse.send("error");
+	}
+});
+
+app.delete("/contacts/:id", async (inRequest: Request, inResponse: Response) => {
+	try {
+		const contactsWorker: Contacts.Worker = new Contacts.Worker();
+		await contactsWorker.deleteContact(parseInt(inRequest.params.id, 10));
+		inResponse.send("ok");
+	} catch (inError) {
+		inResponse.send("error");
+	}
+});
